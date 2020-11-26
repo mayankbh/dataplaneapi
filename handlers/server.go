@@ -60,6 +60,11 @@ type ReplaceServerHandlerImpl struct {
 // Please see the following links for more information:
 //   * https://cbonte.github.io/haproxy-dconv/2.3/configuration.html#5.2-check
 //   * https://www.haproxy.com/documentation/dataplaneapi/latest/#operation/createServer
+//
+// NOTE: As a workaround, this fork of DPAPI disables health checks over SSL to avoid
+// 		 requiring backend services to implement SSL. This is a workaround for when the
+//       DataPlaneAPI client is mandating SSL health checks. (effectively
+//       overriding whatever the client requests.)
 func enableServerCheckWhenOtherCheckOptionsSet(server *models.Server) {
 	if server == nil {
 		return
@@ -68,12 +73,14 @@ func enableServerCheckWhenOtherCheckOptionsSet(server *models.Server) {
 		return
 	}
 	const enabled = "enabled"
+	const disabled = "disabled"
 	if server.CheckSni != "" ||
 		server.CheckSsl == enabled ||
 		server.CheckAlpn != "" ||
 		server.CheckProto != "" ||
 		server.CheckViaSocks4 == enabled {
 		server.Check = enabled
+		server.CheckSsl = disabled
 	}
 }
 
